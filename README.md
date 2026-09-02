@@ -31,6 +31,41 @@
 ### Linux
 - `python3 -m pip install -e .` или `poetry install` *(если установлен менеджер зависимостей poetry)*.
 - `python3 -m compiler [флаги]`
+
+## Сборка Linux-пакета
+
+Для Linux собирается замороженный PyInstaller-бинарник и пакет
+`dist/lapki-compiler_<версия>_<архитектура>.deb`. Исходные Python-файлы в
+пакет не включаются; определения платформ и библиотеки C/C++ помещаются рядом
+с бинарником в `/usr/lib/lapki-compiler`. Версия пакета считывается из
+`pyproject.toml`.
+
+Требуется Docker. Сборочный образ основан на Ubuntu 22.04, поэтому минимальная
+версия GLIBC для итогового пакета — **2.35**. В образ включены `libpython3.10`,
+GNU Arm Embedded Toolchain, GNU Make и Arduino CLI. Ядро `arduino:avr` не
+нужно для заморозки или формирования `.deb`: оно должно устанавливаться в
+системном окружении, где запускается компилятор, командой
+`arduino-cli core install arduino:avr`. Это исключает зависимость сборки
+пакета от временной доступности сервера индексов Arduino.
+
+Linux:
+
+`./packaging/docker-build.sh`
+
+Windows PowerShell:
+
+`./packaging/docker-build.ps1`
+
+Чтобы пересобрать образ без Docker-кэша, передайте `--no-cache` в Linux или
+`-NoCache` в PowerShell. После установки `.deb` служба запускается командой
+`lapki-compiler`; её рабочие файлы создаются в
+`$XDG_STATE_HOME/lapki-compiler/build` (или `~/.local/state/...`).
+
+Для образа, в котором также установлен AVR core, используйте
+`./packaging/docker-build.sh --with-arduino-avr` или
+`./packaging/docker-build.ps1 -WithArduinoAvr`. Эта опция требует доступа к
+`downloads.arduino.cc` и не влияет на содержимое `.deb`.
+
 ## Конфигурация
 Конфигурация модуля может происходить через:
 1. флаги, указываемые при запуске сервиса;
